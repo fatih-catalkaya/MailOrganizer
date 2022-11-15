@@ -1,14 +1,12 @@
 import configuration.Configuration;
 import configuration.MailAccount;
+import jakarta.mail.MessagingException;
+import jakarta.mail.NoSuchProviderException;
 import mail.MailOrganizer;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 
 public class Main {
 
@@ -24,7 +22,15 @@ public class Main {
 
         List<CompletableFuture<Void>> cfl = new ArrayList<>(mailAccounts.length);
         for (final MailAccount mailAccount : mailAccounts) {
-            CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(() -> MailOrganizer.organizeMailAccount(mailAccount));
+            CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(() -> {
+                try{
+                    MailOrganizer.organizeMailAccount(mailAccount);
+                }
+                catch (MessagingException ex){
+                    ex.printStackTrace();
+                }
+
+            });
             cfl.add(completableFuture);
         }
         CompletableFuture.allOf(cfl.toArray(new CompletableFuture[0])).join();
