@@ -1,0 +1,36 @@
+{
+    "mail_accounts": [
+        {
+            "name": "My Mail Account",
+            "imap_host": "mail.host.com",
+            "imap_port": 993,
+            "imap_com_encryption": "STARTTLS",
+            "username": "billy",
+            "password": "password123",
+            "observation_directory": "INBOX",
+            "mail_filters": [
+                {
+                    "filter_header": "Subject",
+                    "filter_value": "Nigerian King",
+                    "match_method": "CONTAINS_IGNORE_CASE",
+                    "move_destination": "Trash",
+                    "mark_read": true
+                },
+                {
+                    "filter_header": "Subject",
+                    "filter_value": "Viagra",
+                    "match_method": "CONTAINS_IGNORE_CASE",
+                    "move_destination": "Trash",
+                    "mark_read": true
+                },
+                {
+                    "filter_header": "Subject",
+                    "filter_value": "Important Email from Boss",
+                    "match_method": "EQUALS",
+                    "move_destination": "Boss_Mails",
+                    "mark_read": false
+                },
+            ]
+        }
+    ]
+}
