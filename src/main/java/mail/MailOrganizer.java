@@ -4,6 +4,7 @@ import com.sun.mail.imap.IMAPFolder;
 import configuration.MailAccount;
 import configuration.MailFilter;
 import jakarta.mail.*;
+import logging.Log;
 
 import java.util.Arrays;
 import java.util.Properties;
@@ -12,6 +13,8 @@ import java.util.stream.Stream;
 
 public class MailOrganizer {
     public static void organizeMailAccount(final MailAccount mailAccount) throws MessagingException {
+        StringBuilder sbLog = new StringBuilder();
+
         Properties props = new Properties();
         props.put("mail.imap.host", mailAccount.getImapHost());
         props.put("mail.imap.port", mailAccount.getImapPort());
@@ -27,13 +30,17 @@ public class MailOrganizer {
                 break;
         }
 
+        sbLog.append(String.format("Connecting to %s:%o....\n", mailAccount.getImapHost(), mailAccount.getImapPort()));
         Session session = Session.getInstance(props);
         Store store = session.getStore("imap");
         store.connect(mailAccount.getUsername(), mailAccount.getPassword());
+        sbLog.append(String.format("Connected successfully. Getting mails in folder %s\n", mailAccount.getObservationDirectory()));
 
         IMAPFolder inbox = (IMAPFolder) store.getFolder(mailAccount.getObservationDirectory());
         inbox.open(Folder.READ_WRITE);
         Message[] msgs = inbox.getMessages();
+
+        sbLog.append(String.format("Got messages in folder successfully. Iterating...\n"));
 
         //Iterate through all messages
         for (int i = 0; i < msgs.length; i++) {
@@ -70,10 +77,12 @@ public class MailOrganizer {
                 }
 
                 if(hit){
+                    sbLog.append(String.format("Got a hit on message with subject \"%s\"\n", msg.getSubject()));
                     Folder destFolder = store.getFolder(mf.getMoveDestination());
                     destFolder.open(Folder.READ_WRITE);
                     inbox.moveMessages(new Message[]{msg}, destFolder);
                     destFolder.close(false);
+                    sbLog.append(String.format("Moved message successfully into destination \"%s\"", mf.getMoveDestination()));
                     break; // we have to break here, because we do not need to continue checking further filter on this email
                 }
             }
@@ -81,5 +90,9 @@ public class MailOrganizer {
 
         inbox.close(false);
         store.close();
+
+        // We write the whole log into an SB first, because if we just dump it into the logger,
+        // it will be a mess because of concurrent scanners.
+        Log.getInstance().info(sbLog.toString());
     }
 }

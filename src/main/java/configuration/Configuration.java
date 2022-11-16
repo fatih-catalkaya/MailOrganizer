@@ -40,6 +40,8 @@ public class Configuration {
     private MailAccount[] parseJson(Any any) throws IOException {
         List<Any> mailAccounts = any.get("mail_accounts").asList();
         MailAccount[] returnList = new MailAccount[mailAccounts.size()];
+        final MailFilter.Builder mfBuilder = new MailFilter.Builder();
+        final MailAccount.Builder mailAccBuilder = new MailAccount.Builder();
         for (int i = 0; i < mailAccounts.size(); i++){
             Any mailAccAny = mailAccounts.get(i);
 
@@ -48,7 +50,6 @@ public class Configuration {
             MailFilter[] filterList = new MailFilter[mailAccFiltersAny.size()];
             for(int j = 0; j < mailAccFiltersAny.size(); j++){
                 Any mailAccFilter = mailAccFiltersAny.get(j);
-                MailFilter.Builder mfBuilder = new MailFilter.Builder();
                 MailFilter mf = mfBuilder
                                     .filterHeader(mailAccFilter.get("filter_header").toString())
                                     .filterValue(mailAccFilter.get("filter_value").toString())
@@ -59,7 +60,7 @@ public class Configuration {
                 filterList[j] = mf;
             }
 
-            MailAccount mailAccount = new MailAccount.Builder()
+            MailAccount mailAccount = mailAccBuilder
                     .name(mailAccAny.get("name").toString())
                     .imapHost(mailAccAny.get("imap_host").toString())
                     .imapPort(mailAccAny.get("imap_port").toInt())
