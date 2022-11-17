@@ -78,7 +78,18 @@ public class MailOrganizer {
 
                 if(hit){
                     sbLog.append(String.format("Got a hit on message with subject \"%s\"\n", msg.getSubject()));
-                    Folder destFolder = store.getFolder(mf.getMoveDestination());
+
+                    // To open a subfolder, we have to use this loop
+                    Folder destFolder = null;
+                    for(String folder : mf.getMoveDestination().split("/")){
+                        if(destFolder == null){
+                            destFolder = store.getFolder(folder);
+                        }
+                        else{
+                            destFolder = destFolder.getFolder(folder);
+                        }
+                    }
+
                     destFolder.open(Folder.READ_WRITE);
                     inbox.moveMessages(new Message[]{msg}, destFolder);
                     destFolder.close(false);
