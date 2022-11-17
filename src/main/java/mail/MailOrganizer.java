@@ -6,12 +6,24 @@ import configuration.MailFilter;
 import jakarta.mail.*;
 import logging.Log;
 
-import java.util.Arrays;
 import java.util.Properties;
-import java.util.regex.Matcher;
 import java.util.stream.Stream;
 
 public class MailOrganizer {
+
+    private static Folder getFolderFromString(final String folderPath, Store store) throws MessagingException {
+        Folder destFolder = null;
+        for(String folder : folderPath.split("/")){
+            if(destFolder == null){
+                destFolder = store.getFolder(folder);
+            }
+            else{
+                destFolder = destFolder.getFolder(folder);
+            }
+        }
+        return destFolder;
+    }
+
     public static void organizeMailAccount(final MailAccount mailAccount) throws MessagingException {
         StringBuilder sbLog = new StringBuilder();
 
@@ -36,7 +48,8 @@ public class MailOrganizer {
         store.connect(mailAccount.getUsername(), mailAccount.getPassword());
         sbLog.append(String.format("Connected successfully. Getting mails in folder %s\n", mailAccount.getObservationDirectory()));
 
-        IMAPFolder inbox = (IMAPFolder) store.getFolder(mailAccount.getObservationDirectory());
+        //IMAPFolder inbox = (IMAPFolder) store.getFolder(mailAccount.getObservationDirectory());
+        IMAPFolder inbox = (IMAPFolder) getFolderFromString(mailAccount.getObservationDirectory(), store);
         inbox.open(Folder.READ_WRITE);
         Message[] msgs = inbox.getMessages();
 
@@ -80,15 +93,7 @@ public class MailOrganizer {
                     sbLog.append(String.format("Got a hit on message with subject \"%s\"\n", msg.getSubject()));
 
                     // To open a subfolder, we have to use this loop
-                    Folder destFolder = null;
-                    for(String folder : mf.getMoveDestination().split("/")){
-                        if(destFolder == null){
-                            destFolder = store.getFolder(folder);
-                        }
-                        else{
-                            destFolder = destFolder.getFolder(folder);
-                        }
-                    }
+                    Folder destFolder = getFolderFromString(mf.getMoveDestination(), store);
 
                     destFolder.open(Folder.READ_WRITE);
                     inbox.moveMessages(new Message[]{msg}, destFolder);
