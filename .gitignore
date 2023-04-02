@@ -40,3 +40,4 @@ config.json
 .idea
 
 /out/
+dependency-reduced-pom.xml
